@@ -13,15 +13,15 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.1.0/24
-      AvailabilityZone: !Select [ 0, !GetAZs ]
+      AvailabilityZone: !Select [0, !GetAZs ]
       MapPublicIpOnLaunch: true
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: 10.0.1.0/24
-      AvailabilityZone: !Select [ 1, !GetAZs ]
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs ]
       MapPublicIpOnLaunch: true
 
   PrivateSubnet:
@@ -29,7 +29,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.3.0/24
-      AvailabilityZone: !Select [ 0, !GetAZs ]
+      AvailabilityZone: !Select [0, !GetAZs ]
 
   # Internet Gateway
   InternetGateway:
@@ -56,22 +56,40 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  # Associate Public Subnet with Public Route Table
-  PublicSubnetRouteTableAssociation:
+  # Attach Public Subnet 1 with Public Route Table
+  PublicSubnetRouteTableAssociation1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PublicSubnet
+      SubnetId: !Ref PublicSubnet1
       RouteTableId: !Ref PublicRouteTable
 
-  # NAT Gateway
-  NATGateway:
+  # Attach Public Subnet 2 with Public Route Table
+  PublicSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  # NAT Gateway 1
+  NATGateway1:
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt EIP.AllocationId
-      SubnetId: !Ref PublicSubnet
+      AllocationId: !GetAtt EIP1.AllocationId
+      SubnetId: !Ref PublicSubnet1
 
-  # Elastic IP for NAT Gateway
-  EIP:
+  # Elastic IP for NAT Gateway 1
+  EIP1:
+    Type: AWS::EC2::EIP
+
+  # NAT Gateway 2
+  NATGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIP2.AllocationId
+      SubnetId: !Ref PublicSubnet2
+
+  # Elastic IP for NAT Gateway 2
+  EIP2:
     Type: AWS::EC2::EIP
 
   # Route Table for Private Subnet
@@ -80,13 +98,21 @@ Resources:
     Properties:
       VpcId: !Ref VPC
 
-  # Route for Private Subnet to NAT Gateway
-  PrivateRoute:
+  # Route for Private Subnet to NAT Gateway 1
+  PrivateRoute1:
     Type: AWS::EC2::Route
     Properties:
       RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGateway
+      NatGatewayId: !Ref NATGateway1
+
+  # Route for Private Subnet to NAT Gateway 2
+  PrivateRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway2
 
   # Associate Private Subnet with Private Route Table
   PrivateSubnetRouteTableAssociation:
