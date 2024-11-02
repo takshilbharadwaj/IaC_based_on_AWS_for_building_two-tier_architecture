@@ -54,7 +54,7 @@ Resources:
     Properties:
       Scheme: internet-facing
       Subnets:
-        - !Ref PublicSubnetId
+        - !ImportValue VPC-Network-Stack-PublicSubnetId
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
 
@@ -63,7 +63,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for load balancer
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue VPC-Network-Stack-VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -74,7 +74,7 @@ Resources:
   WebServerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue VPC-Network-Stack-VpcId
       Port: 80
       Protocol: HTTP
       HealthCheckPath: /
