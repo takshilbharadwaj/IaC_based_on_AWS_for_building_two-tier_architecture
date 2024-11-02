@@ -1,0 +1,64 @@
+name: Deploy CloudFormation templates for two-tier architecture
+
+on:
+  push:
+    branches:
+      - main
+    paths: 
+    # Trigger only when specific files are changed
+      - 'network_Template/vpc_stack.yaml'
+      - 'webserver_Template/webserver_stack.yaml'
+      - 'database_Template/db_stack.yaml'
+
+# Performing separate deployments for each CFN template to minimize chance of error.
+jobs:
+  deploy-vpc:
+    runs-on: ubuntu-latest
+    if: github.event.commits[0].modified.includes('vpc_stack.yaml') # Only run if vpc_stack.yaml is changed
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy VPC stack
+        run: |
+          aws cloudformation deploy \
+            --stack-name VPC-Network-Stack \
+            --template-file vpc_stack.yaml
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-1
+
+  deploy-webserver:
+    runs-on: ubuntu-latest
+    if: github.event.commits[0].modified.includes('webserver_stack.yaml') # Only run if webserver_stack.yaml is changed
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy Web Server stack
+        run: |
+          aws cloudformation deploy \
+            --stack-name Webserver-Setup-Stack \
+            --template-file webserver_stack.yaml \
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-1
+
+  deploy-rds:
+    runs-on: ubuntu-latest
+    if: github.event.commits[0].modified.includes('db_stack.yaml') # Only run if db_stack.yaml is changed
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy Database stack
+        run: |
+          aws cloudformation deploy \
+            --stack-name Database-Setup-Stack \
+            --template-file db_stack.yaml
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-1
