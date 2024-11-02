@@ -1,0 +1,102 @@
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public Subnet ID
+
+Resources:
+  # Security Group for Web Server
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group to allow traffic
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: ssh
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.0.0.0/16
+
+
+  # Launch Template for Web Server
+  WebServerLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: ami-0ad9cba120d409047
+        InstanceType: t2.micro
+        KeyName: master_ec2_key_pair
+        NetworkInterfaces:
+          - SubnetId: !Ref PublicSubnetId
+            DeviceIndex: 0
+            AssociatePublicIpAddress: true
+            Groups:
+              - !Ref WebServerSecurityGroup
+
+  # Auto Scaling Group for Web Server
+  WebServerAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref WebServerLaunchTemplate
+        Version: !GetAtt WebServerLaunchTemplate.LatestVersionNumber
+      MinSize: 2 # Minimum number of instances
+      MaxSize: 4 # Maximum number of instances
+      DesiredCapacity: 2 # Desired number of instances
+      AvailabilityZones:
+        - !Select [ 0, !GetAZs ]
+        - !Select [ 1, !GetAZs ]
+      HealthCheckType: ELB # Use Elastic Load Balancer for health checks
+      TargetGroupARNs:
+        - !Ref WebServerTargetGroup
+
+  # Elastic Load Balancer
+  WebServerLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Subnets:
+        - !Ref PublicSubnetId
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+
+  # Load Balancer Security Group
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for load balancer
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  # Target Group
+  WebServerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VpcId
+      Port: 80
+      Protocol: HTTP
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+
+Outputs:
+  WebServerSecurityGroupId:
+    Value: !Ref WebServerSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-WebServerSecurityGroupId
+  LoadBalancerDNSName:
+    Value: !GetAtt WebServerLoadBalancer.DNSName
+    Export:
+      Name: !Sub ${AWS::StackName}-LoadBalancerDNSName

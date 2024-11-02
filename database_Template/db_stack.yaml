@@ -1,0 +1,49 @@
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public Subnet ID
+
+Resources:
+  # Security Group for RDS Instance
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access from web server
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0 # Temporarily, allowing all for initial setup, will update after MVP.
+
+  # RDS Instance
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: RDS-instance
+      AllocatedStorage: 20
+      DBInstanceClass: db.t3.micro
+      Engine: mysql
+      MasterUsername: {{resolve:secretsmanager:my-rds-secret:SecretString:username}}
+      MasterUserPassword: {{resolve:secretsmanager:my-rds-secret:SecretString:password}}
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      PubliclyAccessible: true # Temporarily, allowing all for initial setup, will update after MVP.
+
+  # RDS Subnet Group
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS instance
+      SubnetIds:
+        - !Ref PrivateSubnetId
+
+Outputs:
+  RDSInstanceId:
+    Value: !Ref RDSInstance
+    Export:
+      Name: !Sub ${AWS::StackName}-RDSInstanceId
