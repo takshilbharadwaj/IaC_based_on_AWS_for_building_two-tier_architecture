@@ -4,17 +4,14 @@ on:
   push:
     branches:
       - main
-    paths: 
-    # Trigger only when specific files are changed
-      - 'network_Template/vpc_stack.yaml'
-      - 'webserver_Template/webserver_stack.yaml'
-      - 'database_Template/db_stack.yaml'
+  workflow_dispatch:
 
 # Performing separate deployments for each CFN template to minimize chance of error.
 jobs:
   deploy-vpc:
     runs-on: ubuntu-latest
-    if: github.event.commits[0].modified.includes('network_Template/vpc_stack.yaml') # Only run if vpc_stack.yaml is changed
+    # Only run if vpc_stack.yaml is changed
+    # if: github.event.commits[0].modified.includes('network_Template/vpc_stack.yaml')
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -31,7 +28,8 @@ jobs:
 
   deploy-webserver:
     runs-on: ubuntu-latest
-    if: github.event.commits[0].modified.includes('webserver_Template/webserver_stack.yaml') # Only run if webserver_stack.yaml is changed
+    # # Only run if webserver_stack.yaml is changed
+    # if: github.event.commits[0].modified.includes('webserver_Template/webserver_stack.yaml')
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -48,7 +46,8 @@ jobs:
 
   deploy-db:
     runs-on: ubuntu-latest
-    if: github.event.commits[0].modified.includes('database_Template/db_stack.yaml') # Only run if db_stack.yaml is changed
+    # Only run if db_stack.yaml is changed
+    # if: github.event.commits[0].modified.includes('database_Template/db_stack.yaml')
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
