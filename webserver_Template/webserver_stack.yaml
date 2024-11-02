@@ -12,7 +12,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group to allow traffic
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue VPC-Network-Stack-VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -33,7 +33,7 @@ Resources:
         InstanceType: t2.micro
         KeyName: master_ec2_key_pair
         NetworkInterfaces:
-          - SubnetId: !Ref PublicSubnetId
+          - SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId
             DeviceIndex: 0
             AssociatePublicIpAddress: true
             Groups:

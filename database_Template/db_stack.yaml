@@ -12,7 +12,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow access from web server
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue VPC-Network-Stack-VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 3306
@@ -40,10 +40,4 @@ Resources:
     Properties:
       DBSubnetGroupDescription: Subnet group for RDS instance
       SubnetIds:
-        - !Ref PrivateSubnetId
-
-Outputs:
-  RDSInstanceId:
-    Value: !Ref RDSInstance
-    Export:
-      Name: !Sub ${AWS::StackName}-RDSInstanceId
+- SubnetId: !ImportValue VPC-Network-Stack-PrivateSubnetId
