@@ -8,7 +8,7 @@ Resources:
       EnableDnsHostnames: true
 
   # Subnets
-  PublicSubnet:
+  PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -16,11 +16,19 @@ Resources:
       AvailabilityZone: !Select [ 0, !GetAZs ]
       MapPublicIpOnLaunch: true
 
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs ]
+      MapPublicIpOnLaunch: true
+
   PrivateSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: 10.0.2.0/24
+      CidrBlock: 10.0.3.0/24
       AvailabilityZone: !Select [ 0, !GetAZs ]
 
   # Internet Gateway
@@ -92,10 +100,14 @@ Outputs:
     Value: !Ref VPC
     Export:
       Name: !Sub ${AWS::StackName}-VpcId
-  PublicSubnetId:
-    Value: !Ref PublicSubnet
+  PublicSubnetId1:
+    Value: !Ref PublicSubnet1
     Export:
-      Name: !Sub ${AWS::StackName}-PublicSubnetId
+      Name: !Sub ${AWS::StackName}-PublicSubnetId1
+  PublicSubnetId2:
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicSubnetId2
   PrivateSubnetId:
     Value: !Ref PrivateSubnet
     Export:

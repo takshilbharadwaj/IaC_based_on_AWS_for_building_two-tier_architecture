@@ -20,7 +20,7 @@ Resources:
         InstanceType: t2.micro
         KeyName: master_ec2_key_pair
         NetworkInterfaces:
-          - SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId
+          - SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId1
             DeviceIndex: 0
             AssociatePublicIpAddress: true
             Groups:
@@ -49,7 +49,8 @@ Resources:
     Properties:
       Scheme: internet-facing
       Subnets:
-        - !ImportValue VPC-Network-Stack-PublicSubnetId
+        - !ImportValue VPC-Network-Stack-PublicSubnetId1
+        - !ImportValue VPC-Network-Stack-PublicSubnetId2
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
 
