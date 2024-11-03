@@ -25,9 +25,9 @@ jobs:
         run: |
           aws cloudformation create-change-set \
             --stack-name VPC-Network-Stack \
-            --template-file network_Template/vpc_stack.yaml \
             --change-set-name VPC-ChangeSet \
-            --change-set-type CREATE
+            --change-set-type CREATE \
+            --template-file network_Template/vpc_stack.yaml
 
       - name: Wait for Change Set to be created
         run: aws cloudformation wait change-set-create-complete --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet
@@ -56,9 +56,9 @@ jobs:
         run: |
           aws cloudformation create-change-set \
             --stack-name Webserver-Setup-Stack \
-            --template-file webserver_Template/webserver_stack.yaml \
             --change-set-name WebServer-ChangeSet \
-            --change-set-type CREATE
+            --change-set-type CREATE \
+            --template-file webserver_Template/webserver_stack.yaml
 
       - name: Wait for Change Set to be created
         run: aws cloudformation wait change-set-create-complete --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet
@@ -87,9 +87,9 @@ jobs:
         run: |
           aws cloudformation create-change-set \
             --stack-name Database-Setup-Stack \
-            --template-file database_Template/db_stack.yaml \
             --change-set-name Database-ChangeSet \
-            --change-set-type CREATE
+            --change-set-type CREATE \
+            --template-file database_Template/db_stack.yaml \
 
       - name: Wait for Change Set to be created
         run: aws cloudformation wait change-set-create-complete --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet
