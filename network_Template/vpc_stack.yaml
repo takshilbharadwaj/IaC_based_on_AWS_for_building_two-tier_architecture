@@ -1,27 +1,48 @@
 Resources:
-  # VPC
+  # VPC configuration
   VPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: true
+      Tags:
+       - Key: Foo
+         Value: Bar1
 
-  # Subnets
-  PublicSubnet:
+  # Public Subnet 1
+  PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.1.0/24
-      AvailabilityZone: !Select [ 0, !GetAZs ]
+      AvailabilityZone: !Select [0, !GetAZs ]
       MapPublicIpOnLaunch: true
-
-  PrivateSubnet:
+  
+  # Public Subnet 2
+  PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.2.0/24
-      AvailabilityZone: !Select [ 0, !GetAZs ]
+      AvailabilityZone: !Select [1, !GetAZs ]
+      MapPublicIpOnLaunch: true
+
+  # Private Subnet 1
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: !Select [0, !GetAZs ]
+
+  # Private Subnet 2
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.4.0/24
+      AvailabilityZone: !Select [1, !GetAZs ]
 
   # Internet Gateway
   InternetGateway:
@@ -48,55 +69,124 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  # Associate Public Subnet with Public Route Table
-  PublicSubnetRouteTableAssociation:
+  # Attach Public Subnet 1 with Public Route Table
+  PublicSubnetRouteTableAssociation1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PublicSubnet
+      SubnetId: !Ref PublicSubnet1
       RouteTableId: !Ref PublicRouteTable
 
-  # NAT Gateway
-  NATGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt EIP.AllocationId
-      SubnetId: !Ref PublicSubnet
-
-  # Elastic IP for NAT Gateway
-  EIP:
-    Type: AWS::EC2::EIP
-
-  # Route Table for Private Subnet
-  PrivateRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-
-  # Route for Private Subnet to NAT Gateway
-  PrivateRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGateway
-
-  # Associate Private Subnet with Private Route Table
-  PrivateSubnetRouteTableAssociation:
+  # Attach Public Subnet 2 with Public Route Table
+  PublicSubnetRouteTableAssociation2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PrivateSubnet
-      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  # ---------------------------------------------------------------------------------------------
+  # Commenting the below resources as NAT gateways are not required and being changed.
+  # However, keeping it here for future use if needed.
+  # ---------------------------------------------------------------------------------------------
+
+  # # NAT Gateway 1
+  # NATGateway1:
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId: !GetAtt EIP1.AllocationId
+  #     SubnetId: !Ref PublicSubnet1
+
+  # # Elastic IP for NAT Gateway 1
+  # EIP1:
+  #   Type: AWS::EC2::EIP
+
+  # # NAT Gateway 2
+  # NATGateway2:
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId: !GetAtt EIP2.AllocationId
+  #     SubnetId: !Ref PublicSubnet2
+
+  # # Elastic IP for NAT Gateway 2
+  # EIP2:
+  #   Type: AWS::EC2::EIP
+
+  # # Route Table for Private Subnet 1
+  # PrivateRouteTable1:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     VpcId: !Ref VPC
+
+  # # Route for Private Subnet 1 to NAT Gateway 1
+  # PrivateRoute1-AZ-1:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable1
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId: !Ref NATGateway1
+
+  # # Route for Private Subnet 1 to NAT Gateway 2
+  # PrivateRoute1-AZ-2:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable1
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId: !Ref NATGateway2
+
+  # # Associate Private Subnet 1 with Private Route Table 1
+  # PrivateSubnetRouteTableAssociation1:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     SubnetId: !Ref PrivateSubnet1
+  #     RouteTableId: !Ref PrivateRouteTable1
+
+  # # Route Table for Private Subnet 2
+  # PrivateRouteTable2:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     VpcId: !Ref VPC
+
+  # # Route for Private Subnet 2 to NAT Gateway 1
+  # PrivateRoute2-AZ-1:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable2
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId: !Ref NATGateway1
+
+  # # Route for Private Subnet 2 to NAT Gateway 2
+  # PrivateRoute2-AZ-2:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable2
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId: !Ref NATGateway2
+
+  # # Associate Private Subnet 2 with Private Route Table 2
+  # PrivateSubnetRouteTableAssociation2:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     SubnetId: !Ref PrivateSubnet2
+  #     RouteTableId: !Ref PrivateRouteTable2
+  # ---------------------------------------------------------------------------------------------
 
 Outputs:
   VpcId:
     Value: !Ref VPC
     Export:
       Name: !Sub ${AWS::StackName}-VpcId
-  PublicSubnetId:
-    Value: !Ref PublicSubnet
+  PublicSubnetId1:
+    Value: !Ref PublicSubnet1
     Export:
-      Name: !Sub ${AWS::StackName}-PublicSubnetId
-  PrivateSubnetId:
-    Value: !Ref PrivateSubnet
+      Name: !Sub ${AWS::StackName}-PublicSubnetId1
+  PublicSubnetId2:
+    Value: !Ref PublicSubnet2
     Export:
-      Name: !Sub ${AWS::StackName}-PrivateSubnetId
+      Name: !Sub ${AWS::StackName}-PublicSubnetId2
+  PrivateSubnetId1:
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnetId1
+  PrivateSubnetId2:
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnetId2

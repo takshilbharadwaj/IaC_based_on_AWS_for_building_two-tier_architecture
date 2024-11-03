@@ -4,60 +4,70 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
+    paths:
+      - network_Template/vpc_stack.yaml
+      - webserver_Template/webserver_stack.yaml
+      - database_Template/db_stack.yaml
 
-# Performing separate deployments for each CFN template to minimize chance of error.
 jobs:
   deploy-vpc:
     runs-on: ubuntu-latest
-    # Only run if vpc_stack.yaml is changed
-    # if: github.event.commits[0].modified.includes('network_Template/vpc_stack.yaml')
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
 
       - name: Deploy VPC stack
         run: |
           aws cloudformation deploy \
             --stack-name VPC-Network-Stack \
-            --template-file vpc_stack.yaml
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-west-1
+            --template-file network_Template/vpc_stack.yaml \
+            --debug
 
   deploy-webserver:
     runs-on: ubuntu-latest
-    # # Only run if webserver_stack.yaml is changed
-    # if: github.event.commits[0].modified.includes('webserver_Template/webserver_stack.yaml')
+    needs: deploy-vpc
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
 
       - name: Deploy Web Server stack
         run: |
           aws cloudformation deploy \
             --stack-name Webserver-Setup-Stack \
-            --template-file webserver_stack.yaml \
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-west-1
+            --template-file webserver_Template/webserver_stack.yaml \
+            --debug
 
   deploy-db:
     runs-on: ubuntu-latest
-    # Only run if db_stack.yaml is changed
-    # if: github.event.commits[0].modified.includes('database_Template/db_stack.yaml')
+    needs: deploy-webserver
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
 
       - name: Deploy Database stack
         run: |
           aws cloudformation deploy \
             --stack-name Database-Setup-Stack \
-            --template-file db_stack.yaml
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-west-1
+            --template-file database_Template/db_stack.yaml \
+            --debug

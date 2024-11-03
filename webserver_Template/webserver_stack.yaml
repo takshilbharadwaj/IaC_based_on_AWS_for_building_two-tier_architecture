@@ -1,30 +1,17 @@
-Parameters:
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: VPC ID
-  PublicSubnetId:
-    Type: AWS::EC2::Subnet::Id
-    Description: Public Subnet ID
-
 Resources:
   # Security Group for Web Server
   WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group to allow traffic
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue VPC-Network-Stack-VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-        - IpProtocol: ssh
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 10.0.0.0/16
 
-
-  # Launch Template for Web Server
+  # Launch Templates for Web Server across the two subnets.
   WebServerLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -33,11 +20,14 @@ Resources:
         InstanceType: t2.micro
         KeyName: master_ec2_key_pair
         NetworkInterfaces:
-          - SubnetId: !Ref PublicSubnetId
-            DeviceIndex: 0
-            AssociatePublicIpAddress: true
+          - DeviceIndex: 0
             Groups:
               - !Ref WebServerSecurityGroup
+            SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId1
+          - DeviceIndex: 1
+            Groups:
+              - !Ref WebServerSecurityGroup
+            SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId2
 
   # Auto Scaling Group for Web Server
   WebServerAutoScalingGroup:
@@ -50,8 +40,8 @@ Resources:
       MaxSize: 4 # Maximum number of instances
       DesiredCapacity: 2 # Desired number of instances
       AvailabilityZones:
-        - !Select [ 0, !GetAZs ]
-        - !Select [ 1, !GetAZs ]
+        - !Select [0, !GetAZs ]
+        - !Select [1, !GetAZs ]
       HealthCheckType: ELB # Use Elastic Load Balancer for health checks
       TargetGroupARNs:
         - !Ref WebServerTargetGroup
@@ -62,7 +52,8 @@ Resources:
     Properties:
       Scheme: internet-facing
       Subnets:
-        - !Ref PublicSubnetId
+        - !ImportValue VPC-Network-Stack-PublicSubnetId1
+        - !ImportValue VPC-Network-Stack-PublicSubnetId2
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
 
@@ -71,7 +62,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for load balancer
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue VPC-Network-Stack-VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -82,7 +73,7 @@ Resources:
   WebServerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue VPC-Network-Stack-VpcId
       Port: 80
       Protocol: HTTP
       HealthCheckPath: /

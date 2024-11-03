@@ -1,46 +1,41 @@
-Parameters:
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: VPC ID
-  PublicSubnetId:
-    Type: AWS::EC2::Subnet::Id
-    Description: Public Subnet ID
-
 Resources:
   # Security Group for RDS Instance
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow access from web server
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue VPC-Network-Stack-VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          CidrIp: 0.0.0.0/0 # Temporarily, allowing all for initial setup, will update after MVP.
+          # Allow access from the web server security group
+          SourceSecurityGroupId: !ImportValue Webserver-Setup-Stack-WebServerSecurityGroupId
 
   # RDS Instance
   RDSInstance:
     Type: AWS::RDS::DBInstance
     Properties:
       DBInstanceIdentifier: RDS-instance
-      AllocatedStorage: 20
+      AllocatedStorage: 10
       DBInstanceClass: db.t3.micro
       Engine: mysql
-      MasterUsername: {{resolve:secretsmanager:my-rds-secret:SecretString:username}}
-      MasterUserPassword: {{resolve:secretsmanager:my-rds-secret:SecretString:password}}
+      MasterUsername: '{{resolve:secretsmanager:RDS-Master-Creds:SecretString:username}}'
+      MasterUserPassword: '{{resolve:secretsmanager:RDS-Master-Creds:SecretString:password}}'
       VPCSecurityGroups:
         - !Ref RDSSecurityGroup
       DBSubnetGroupName: !Ref RDSSubnetGroup
-      PubliclyAccessible: true # Temporarily, allowing all for initial setup, will update after MVP.
+      PubliclyAccessible: false
+      MultiAZ: true
 
   # RDS Subnet Group
   RDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: Subnet group for RDS instance
+      DBSubnetGroupDescription: Subnet groups for RDS instance
       SubnetIds:
-        - !Ref PrivateSubnetId
+        - !ImportValue VPC-Network-Stack-PrivateSubnetId1
+        - !ImportValue VPC-Network-Stack-PrivateSubnetId2
 
 Outputs:
   RDSInstanceId:
