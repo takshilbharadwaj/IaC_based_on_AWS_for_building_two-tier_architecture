@@ -22,10 +22,10 @@ jobs:
 
       - name: Check if stack exists
         id: check-vpc-stack-exists
-        run: aws cloudformation describe-stacks --stack-name VPC-Network-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
+        run: aws cloudformation describe-stacks --stack-name VPC-Network-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt && cat stack_status.txt
 
       - name: Create Change Set for VPC stack
-        if: steps.check-vpc-stack-exists.outputs.stack_exists == 'CREATE_COMPLETE'
+        if: steps.check-vpc-stack-exists.outputs.stack_exists != 'NO_STACK'
         run: |
           aws cloudformation create-change-set \
             --stack-name VPC-Network-Stack \
@@ -35,7 +35,7 @@ jobs:
             --region eu-west-1
 
       - name: Create Change Set for VPC stack (if not exists)
-        if: steps.check-vpc-stack-exists.outputs.stack_exists != 'CREATE_COMPLETE'
+        if: steps.check-vpc-stack-exists.outputs.stack_exists == 'NO_STACK'
         run: |
           aws cloudformation create-change-set \
             --stack-name VPC-Network-Stack \
@@ -69,10 +69,10 @@ jobs:
 
       - name: Check if stack exists
         id: check-webserver-stack-exists
-        run: aws cloudformation describe-stacks --stack-name Webserver-Setup-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
+        run: aws cloudformation describe-stacks --stack-name Webserver-Setup-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt && cat stack_status.txt
 
       - name: Create Change Set for Web Server stack
-        if: steps.check-webserver-stack-exists.outputs.stack_exists == 'CREATE_COMPLETE'
+        if: steps.check-webserver-stack-exists.outputs.stack_exists != 'NO_STACK'
         run: |
           aws cloudformation create-change-set \
             --stack-name Webserver-Setup-Stack \
@@ -82,7 +82,7 @@ jobs:
             --region eu-west-1
 
       - name: Create Change Set for Web Server stack (if not exists)
-        if: steps.check-webserver-stack-exists.outputs.stack_exists != 'CREATE_COMPLETE'
+        if: steps.check-webserver-stack-exists.outputs.stack_exists == 'NO_STACK'
         run: |
           aws cloudformation create-change-set \
             --stack-name Webserver-Setup-Stack \
@@ -116,10 +116,10 @@ jobs:
 
       - name: Check if stack exists
         id: check-db-stack-exists
-        run: aws cloudformation describe-stacks --stack-name Database-Setup-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
+        run: aws cloudformation describe-stacks --stack-name Database-Setup-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt && cat stack_status.txt
 
       - name: Create Change Set for Database stack
-        if: steps.check-db-stack-exists.outputs.stack_exists == 'CREATE_COMPLETE'
+        if: steps.check-db-stack-exists.outputs.stack_exists != 'NO_STACK'
         run: |
           aws cloudformation create-change-set \
             --stack-name Database-Setup-Stack \
@@ -129,7 +129,7 @@ jobs:
             --region eu-west-1
 
       - name: Create Change Set for Database stack (if not exists)
-        if: steps.check-db-stack-exists.outputs.stack_exists != 'CREATE_COMPLETE'
+        if: steps.check-db-stack-exists.outputs.stack_exists == 'NO_STACK'
         run: |
           aws cloudformation create-change-set \
             --stack-name Database-Setup-Stack \
