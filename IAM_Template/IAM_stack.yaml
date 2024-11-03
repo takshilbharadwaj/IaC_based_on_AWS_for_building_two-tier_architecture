@@ -1,0 +1,22 @@
+Resources:
+  # IAM configuration
+  EC2SSMAllowanceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: SSMManagedInstanceCore
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:*"
+                Resource: "*"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"

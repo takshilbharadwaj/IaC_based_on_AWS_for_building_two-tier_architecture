@@ -3,11 +3,12 @@ name: Deploy CloudFormation templates for two-tier architecture
 on:
   push:
     branches:
-      - main
+      - Add_IAM_Template
     paths:
       - network_Template/vpc_stack.yaml
       - webserver_Template/webserver_stack.yaml
       - database_Template/db_stack.yaml
+      - IAM_Template/IAM_Template.yaml
 
 jobs:
   deploy-vpc:
@@ -30,6 +31,26 @@ jobs:
             --template-file network_Template/vpc_stack.yaml \
             --debug
 
+  deploy-IAM:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Deploy IAM stack
+        run: |
+          aws cloudformation deploy \
+            --stack-name IAM-Setup-Stack \
+            --template-file IAM_Template/IAM_stack.yaml \
+            --debug
+            
   deploy-webserver:
     runs-on: ubuntu-latest
     needs: deploy-vpc
