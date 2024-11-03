@@ -85,7 +85,7 @@ Resources:
 
   # ---------------------------------------------------------------------------------------------
   # Commenting the below resources as NAT gateways are not required and being changed.
-  # However, keeping it here for future use if needed.
+  # Keeping them here for future use if needed.
   # ---------------------------------------------------------------------------------------------
 
   # # NAT Gateway 1

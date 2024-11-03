@@ -9,25 +9,23 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: 0.0.0.0/0
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
 
-  # Launch Templates for Web Server across the two subnets.
+  # Launch Templates for Web Server 
   WebServerLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        ImageId: ami-0ad9cba120d409047
+        ImageId: ami-0c951c485f8240c16
         InstanceType: t2.micro
         KeyName: master_ec2_key_pair
+        IamInstanceProfile:
+          Arn: !ImportValue IAM-Setup-Stack-WebServerInstanceProfileArn 
         NetworkInterfaces:
           - DeviceIndex: 0
             Groups:
               - !Ref WebServerSecurityGroup
-            SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId1
-          - DeviceIndex: 1
-            Groups:
-              - !Ref WebServerSecurityGroup
-            SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId2
+            SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId1 
 
   # Auto Scaling Group for Web Server
   WebServerAutoScalingGroup:
@@ -40,9 +38,9 @@ Resources:
       MaxSize: 4 # Maximum number of instances
       DesiredCapacity: 2 # Desired number of instances
       AvailabilityZones:
-        - !Select [0, !GetAZs ]
-        - !Select [1, !GetAZs ]
-      HealthCheckType: ELB # Use Elastic Load Balancer for health checks
+        - eu-west-1a
+        - eu-west-1b
+      HealthCheckType: ELB
       TargetGroupARNs:
         - !Ref WebServerTargetGroup
 
@@ -81,6 +79,17 @@ Resources:
       HealthCheckTimeoutSeconds: 10
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 2
+    
+  # Listener for Load balancer
+  WebServerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref WebServerLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WebServerTargetGroup
 
 Outputs:
   WebServerSecurityGroupId:

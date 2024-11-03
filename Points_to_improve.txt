@@ -1,0 +1,20 @@
+Things I can add to the IaC setup:
+
+Security: 
+  -- Currently using AWS service user with Administrative access, as it will take bit of time to narrow down the IAM scope just to services being deployed.
+  -- Implement WAF rules to secure the server from unwanted traffic/DDoS attacks, etc, e.g. rate limit rules, etc.
+
+Monitoring: Set up CloudWatch alarms to monitor the health and performance of the application.
+
+Logging: Enable logging for the web server and RDS instance for troubleshooting and auditing.
+Notification for CFN stack: Setup SNS topic to confirm if the stack was updated successfully or not.
+
+Modularity: Increase modularity for the stack to avoid human errors while updating the templates.
+
+Debugging: Debugging for AWS CLI command needs to be implemented in order to have clarity of the run if any failure.
+
+Multi region deployment: As part of MVP, I didn't find it important, but can definitely be implemented.
+
+Template Versioning: As part of rollback/mitigation, versioning for templates should be implemented.
+
+Implement StackSet instead of Stack: This will let me redeploy all these resources with ease in multiple regions.
