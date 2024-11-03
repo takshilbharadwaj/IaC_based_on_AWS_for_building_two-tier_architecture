@@ -21,6 +21,14 @@ Resources:
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 
+  # IAM Instance Profile
+  WebServerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref WebServerInstanceRole
+
 Outputs:
   WebServerInstanceProfileArn:
     Value: !GetAtt WebServerInstanceProfile.Arn
