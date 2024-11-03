@@ -16,7 +16,7 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       DBInstanceIdentifier: RDS-instance
-      AllocatedStorage: 20
+      AllocatedStorage: 10
       DBInstanceClass: db.t3.micro
       Engine: mysql
       MasterUsername: {{resolve:secretsmanager:my-rds-secret:SecretString:username}}
@@ -30,6 +30,13 @@ Resources:
   RDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: Subnet group for RDS instance
+      DBSubnetGroupDescription: Subnet groups for RDS instance
       SubnetIds:
-- SubnetId: !ImportValue VPC-Network-Stack-PrivateSubnetId
+        - !ImportValue VPC-Network-Stack-PrivateSubnetId1
+        - !ImportValue VPC-Network-Stack-PrivateSubnetId2
+
+Outputs:
+  RDSInstanceId:
+    Value: !Ref RDSInstance
+    Export:
+      Name: !Sub ${AWS::StackName}-RDSInstanceId

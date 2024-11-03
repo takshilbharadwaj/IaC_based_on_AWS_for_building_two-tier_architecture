@@ -27,9 +27,6 @@ jobs:
             --stack-name VPC-Network-Stack \
             --template-file network_Template/vpc_stack.yaml
 
-      - name: Check AWS Identity
-        run: aws sts get-caller-identity
-
   deploy-webserver:
     runs-on: ubuntu-latest
     needs: deploy-vpc
