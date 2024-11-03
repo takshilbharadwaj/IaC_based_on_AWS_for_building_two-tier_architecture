@@ -1,23 +1,22 @@
 Resources:
   # IAM configuration
-  EC2SSMAllowanceRole:
-    Type: "AWS::IAM::Role"
+  WebServerEC2IAMRole:
+    Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
             Principal:
               Service: ec2.amazonaws.com
-            Action: "sts:AssumeRole"
+            Action: sts:AssumeRole
       Path: /
       Policies:
-        - PolicyName: SSMManagedInstanceCore
+        - PolicyName: EC2AccessToSecretsManager
           PolicyDocument:
             Statement:
               - Effect: Allow
-                Action:
-                  - "ssm:*"
-                Resource: "*"
+                Action: secretsmanager:GetSecretValue
+                Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:RDS-Master-Creds
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 
@@ -27,7 +26,7 @@ Resources:
     Properties:
       Path: /
       Roles:
-        - !Ref EC2SSMAllowanceRole
+        - !Ref WebServerEC2IAMRole
 
 Outputs:
   WebServerInstanceProfileArn:

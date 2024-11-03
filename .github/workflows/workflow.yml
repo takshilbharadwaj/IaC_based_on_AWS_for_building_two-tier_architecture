@@ -3,7 +3,7 @@ name: Deploy CloudFormation templates for two-tier architecture
 on:
   push:
     branches:
-      - Add_IAM_Template
+      - main
     paths:
       - network_Template/vpc_stack.yaml
       - webserver_Template/webserver_stack.yaml
