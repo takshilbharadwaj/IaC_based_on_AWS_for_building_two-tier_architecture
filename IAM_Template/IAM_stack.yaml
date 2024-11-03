@@ -1,5 +1,5 @@
 Resources:
-  # IAM configuration
+  # Define IAM configuration
   EC2SSMAllowanceRole:
     Type: "AWS::IAM::Role"
     Properties:
