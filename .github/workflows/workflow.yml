@@ -14,7 +14,6 @@ on:
 jobs:
   deploy-vpc:
     runs-on: ubuntu-latest
-    if: contains(github.event.push.changes[*].filename, '*/vpc_stack.yaml')
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -35,7 +34,6 @@ jobs:
 
   deploy-webserver:
     runs-on: ubuntu-latest
-    if: contains(github.event.push.changes[*].filename, 'webserver_Template/webserver_stack.yaml')
     needs: deploy-vpc
     steps:
       - name: Checkout code
@@ -57,7 +55,6 @@ jobs:
 
   deploy-db:
     runs-on: ubuntu-latest
-    if: contains(github.event.push.changes[*].filename, 'database_Template/db_stack.yaml')
     needs: deploy-webserver
     steps:
       - name: Checkout code
