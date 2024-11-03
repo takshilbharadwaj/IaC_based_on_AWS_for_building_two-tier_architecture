@@ -14,7 +14,7 @@ on:
 jobs:
   deploy-vpc:
     runs-on: ubuntu-latest
-    if: contains(github.event.push.changes[*].filename, 'network_Template/vpc_stack.yaml')
+    if: contains(github.event.push.changes[*].filename, '*/vpc_stack.yaml')
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

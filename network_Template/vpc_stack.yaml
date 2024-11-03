@@ -8,7 +8,7 @@ Resources:
       EnableDnsHostnames: true
       Tags:
        - Key: Foo
-         Value: Bar
+         Value: Bar1
 
   # Public Subnet 1
   PublicSubnet1:
