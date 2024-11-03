@@ -5,7 +5,6 @@ on:
     branches:
       - update_workflow_templates_path_issue
     paths:
-      - .github/workflows/workflow.yml
       - network_Template/vpc_stack.yaml
       - webserver_Template/webserver_stack.yaml
       - database_Template/db_stack.yaml
