@@ -23,8 +23,11 @@ jobs:
       - name: Check if stack exists
         id: check-vpc-stack-exists
         run: |
-          aws cloudformation describe-stacks --stack-name VPC-Network-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
-          echo "::set-output name=stack_exists::$(cat stack_status.txt)"
+        run: |
+          aws cloudformation describe-stacks \
+          --stack-name VPC-Network-Stack \ 
+          --query 'Stacks[0].StackStatus' \
+          --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
 
       - name: Create Change Set for VPC stack
         if: steps.check-vpc-stack-exists.outputs.stack_exists == 'CREATE_COMPLETE'
@@ -33,7 +36,7 @@ jobs:
             --stack-name VPC-Network-Stack \
             --change-set-name VPC-ChangeSet \
             --change-set-type UPDATE \
-            --template-body network_Template/vpc_stack.yaml \
+            --template-body file://network_Template/vpc_stack.yaml \
             --region eu-west-1
 
       - name: Create Change Set for VPC stack (if not exists)
@@ -43,7 +46,7 @@ jobs:
             --stack-name VPC-Network-Stack \
             --change-set-name VPC-ChangeSet \
             --change-set-type CREATE \
-            --template-body network_Template/vpc_stack.yaml \
+            --template-body file://network_Template/vpc_stack.yaml \
             --region eu-west-1
 
       - name: Wait for Change Set to be created
@@ -72,8 +75,10 @@ jobs:
       - name: Check if stack exists
         id: check-webserver-stack-exists
         run: |
-          aws cloudformation describe-stacks --stack-name Webserver-Setup-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
-          echo "::set-output name=stack_exists::$(cat stack_status.txt)"
+          aws cloudformation describe-stacks \
+          --stack-name Webserver-Setup-Stack \ 
+          --query 'Stacks[0].StackStatus' \
+          --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
 
       - name: Create Change Set for Web Server stack
         if: steps.check-webserver-stack-exists.outputs.stack_exists == 'CREATE_COMPLETE'
@@ -82,7 +87,7 @@ jobs:
             --stack-name Webserver-Setup-Stack \
             --change-set-name WebServer-ChangeSet \
             --change-set-type UPDATE \
-            --template-body webserver_Template/webserver_stack.yaml \
+            --template-body file://webserver_Template/webserver_stack.yaml \
             --region eu-west-1
 
       - name: Create Change Set for Web Server stack (if not exists)
@@ -92,7 +97,7 @@ jobs:
             --stack-name Webserver-Setup-Stack \
             --change-set-name WebServer-ChangeSet \
             --change-set-type CREATE \
-            --template-body webserver_Template/webserver_stack.yaml \
+            --template-body file://webserver_Template/webserver_stack.yaml \
             --region eu-west-1
 
       - name: Wait for Change Set to be created
@@ -121,8 +126,10 @@ jobs:
       - name: Check if stack exists
         id: check-db-stack-exists
         run: |
-          aws cloudformation describe-stacks --stack-name Database-Setup-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
-          echo "::set-output name=stack_exists::$(cat stack_status.txt)"
+          aws cloudformation describe-stacks \
+          --stack-name Database-Setup-Stack \ 
+          --query 'Stacks[0].StackStatus' \
+          --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
 
       - name: Create Change Set for Database stack
         if: steps.check-db-stack-exists.outputs.stack_exists == 'CREATE_COMPLETE'
@@ -131,7 +138,7 @@ jobs:
             --stack-name Database-Setup-Stack \
             --change-set-name Database-ChangeSet \
             --change-set-type UPDATE \
-            --template-body database_Template/db_stack.yaml \
+            --template-body file://database_Template/db_stack.yaml \
             --region eu-west-1
 
       - name: Create Change Set for Database stack (if not exists)
@@ -141,7 +148,7 @@ jobs:
             --stack-name Database-Setup-Stack \
             --change-set-name Database-ChangeSet \
             --change-set-type CREATE \
-            --template-body database_Template/db_stack.yaml \
+            --template-body file://database_Template/db_stack.yaml \
             --region eu-west-1
 
       - name: Wait for Change Set to be created
