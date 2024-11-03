@@ -8,7 +8,7 @@ on:
       - network_Template/vpc_stack.yaml
       - webserver_Template/webserver_stack.yaml
       - database_Template/db_stack.yaml
-      - IAM_Template/IAM_Template.yaml
+      - IAM_Template/IAM_stack.yaml
 
 jobs:
   deploy-vpc:
