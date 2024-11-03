@@ -27,7 +27,7 @@ Resources:
     Properties:
       Path: /
       Roles:
-        - !Ref WebServerInstanceRole
+        - !Ref EC2SSMAllowanceRole
 
 Outputs:
   WebServerInstanceProfileArn:
