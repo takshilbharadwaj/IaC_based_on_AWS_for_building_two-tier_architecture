@@ -11,7 +11,7 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
 
-  # Launch Template for Web Server
+  # Launch Templates for Web Server across the two subnets.
   WebServerLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -20,11 +20,14 @@ Resources:
         InstanceType: t2.micro
         KeyName: master_ec2_key_pair
         NetworkInterfaces:
-          - SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId1
-            DeviceIndex: 0
-            AssociatePublicIpAddress: true
+          - DeviceIndex: 0
             Groups:
               - !Ref WebServerSecurityGroup
+            SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId1
+          - DeviceIndex: 1
+            Groups:
+              - !Ref WebServerSecurityGroup
+            SubnetId: !ImportValue VPC-Network-Stack-PublicSubnetId2
 
   # Auto Scaling Group for Web Server
   WebServerAutoScalingGroup:
@@ -37,8 +40,8 @@ Resources:
       MaxSize: 4 # Maximum number of instances
       DesiredCapacity: 2 # Desired number of instances
       AvailabilityZones:
-        - !Select [ 0, !GetAZs ]
-        - !Select [ 1, !GetAZs ]
+        - !Select [0, !GetAZs ]
+        - !Select [1, !GetAZs ]
       HealthCheckType: ELB # Use Elastic Load Balancer for health checks
       TargetGroupARNs:
         - !Ref WebServerTargetGroup
