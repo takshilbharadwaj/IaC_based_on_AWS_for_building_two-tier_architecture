@@ -1,5 +1,5 @@
 Resources:
-  # IAM configuration 
+  # IAM configuration
   EC2SSMAllowanceRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -20,3 +20,9 @@ Resources:
                 Resource: "*"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+
+Outputs:
+  WebServerInstanceProfileArn:
+    Value: !GetAtt WebServerInstanceProfile.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-WebServerInstanceProfileArn

@@ -16,9 +16,11 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        ImageId: ami-0ad9cba120d409047
+        ImageId: ami-0f7fc472b4e8e7a08
         InstanceType: t2.micro
         KeyName: master_ec2_key_pair
+        IamInstanceProfile:
+          Arn: !ImportValue IAM-Stack-WebServerInstanceProfileArn 
         NetworkInterfaces:
           - DeviceIndex: 0
             Groups:
