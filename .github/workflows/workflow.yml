@@ -23,7 +23,6 @@ jobs:
       - name: Check if stack exists
         id: check-vpc-stack-exists
         run: |
-        run: |
           aws cloudformation describe-stacks \
           --stack-name VPC-Network-Stack \ 
           --query 'Stacks[0].StackStatus' \
