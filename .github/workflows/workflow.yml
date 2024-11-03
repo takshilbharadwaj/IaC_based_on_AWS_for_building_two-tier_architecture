@@ -11,7 +11,7 @@ jobs:
   deploy-vpc:
     runs-on: ubuntu-latest
     # Only run the job if the vpc_stack.yaml file is modified.
-    if: contains(github.event.head_commit.modified, 'network_Template/vpc_stack.yaml')
+    if: contains(github.event.push.changes[*].filename, 'network_Template/vpc_stack.yaml')
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
   deploy-webserver:
     runs-on: ubuntu-latest
     # Only run the job if the vpc_stack.yaml file is modified.
-    if: contains(github.event.head_commit.modified, 'webserver_Template/webserver_stack.yaml')
+    if: contains(github.event.push.changes[*].filename, 'webserver_Template/webserver_stack.yaml')
     needs: deploy-vpc
     steps:
       - name: Checkout code
@@ -55,7 +55,7 @@ jobs:
 
   deploy-db:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'database_Template/db_stack.yaml')
+    if: contains(github.event.push.changes[*].filename, 'database_Template/db_stack.yaml')
     needs: deploy-webserver
     steps:
       - name: Checkout code
