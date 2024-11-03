@@ -3,13 +3,12 @@ name: Deploy CloudFormation templates for two-tier architecture
 on:
   push:
     branches:
-      - update_workflow_templates_path_issue
+      - main
     paths:
       - network_Template/vpc_stack.yaml
       - webserver_Template/webserver_stack.yaml
       - database_Template/db_stack.yaml
 
-# Performing separate deployments for each CFN template to minimize chance of error.
 jobs:
   deploy-vpc:
     runs-on: ubuntu-latest
