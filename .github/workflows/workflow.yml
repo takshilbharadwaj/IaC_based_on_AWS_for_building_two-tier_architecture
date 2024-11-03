@@ -6,43 +6,10 @@ on:
       - update_workflow_templates_path_issue
   workflow_dispatch:
 
-# Performing separate deployments for each CFN template to minimize chance of error.
 jobs:
   deploy-vpc:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-
-      - name: Create Change Set for VPC stack
-        run: |
-          aws cloudformation create-change-set \
-            --stack-name VPC-Network-Stack \
-            --change-set-name VPC-ChangeSet \
-            --change-set-type CREATE \
-            --template-body network_Template/vpc_stack.yaml
-
-      - name: Wait for Change Set to be created
-        run: aws cloudformation wait change-set-create-complete --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet
-
-      - name: Describe Change Set for VPC stack
-        run: aws cloudformation describe-change-set --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet
-
-      - name: Execute Change Set for VPC stack
-        run: aws cloudformation execute-change-set --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet
-
-  deploy-webserver:
-    runs-on: ubuntu-latest
-    needs: deploy-vpc
-    steps:
-      
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -53,25 +20,89 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Update AWS CLI 
-        run: pip install --upgrade awscli
+      - name: Check if stack exists
+        id: check-vpc-stack-exists
+        run: |
+          aws cloudformation describe-stacks --stack-name VPC-Network-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
+          echo "::set-output name=stack_exists::$(cat stack_status.txt)"
+
+      - name: Create Change Set for VPC stack
+        if: steps.check-vpc-stack-exists.outputs.stack_exists == 'CREATE_COMPLETE'
+        run: |
+          aws cloudformation create-change-set \
+            --stack-name VPC-Network-Stack \
+            --change-set-name VPC-ChangeSet \
+            --change-set-type UPDATE \
+            --template-body network_Template/vpc_stack.yaml \
+            --region eu-west-1
+
+      - name: Create Change Set for VPC stack (if not exists)
+        if: steps.check-vpc-stack-exists.outputs.stack_exists != 'CREATE_COMPLETE'
+        run: |
+          aws cloudformation create-change-set \
+            --stack-name VPC-Network-Stack \
+            --change-set-name VPC-ChangeSet \
+            --change-set-type CREATE \
+            --template-body network_Template/vpc_stack.yaml \
+            --region eu-west-1
+
+      - name: Wait for Change Set to be created
+        run: aws cloudformation wait change-set-create-complete --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet --region eu-west-1
+
+      - name: Describe Change Set for VPC stack
+        run: aws cloudformation describe-change-set --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet --region eu-west-1
+
+      - name: Execute Change Set for VPC stack
+        run: aws cloudformation execute-change-set --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet --region eu-west-1
+
+  deploy-webserver:
+    runs-on: ubuntu-latest
+    needs: deploy-vpc
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Check if stack exists
+        id: check-webserver-stack-exists
+        run: |
+          aws cloudformation describe-stacks --stack-name Webserver-Setup-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
+          echo "::set-output name=stack_exists::$(cat stack_status.txt)"
 
       - name: Create Change Set for Web Server stack
+        if: steps.check-webserver-stack-exists.outputs.stack_exists == 'CREATE_COMPLETE'
+        run: |
+          aws cloudformation create-change-set \
+            --stack-name Webserver-Setup-Stack \
+            --change-set-name WebServer-ChangeSet \
+            --change-set-type UPDATE \
+            --template-body webserver_Template/webserver_stack.yaml \
+            --region eu-west-1
+
+      - name: Create Change Set for Web Server stack (if not exists)
+        if: steps.check-webserver-stack-exists.outputs.stack_exists != 'CREATE_COMPLETE'
         run: |
           aws cloudformation create-change-set \
             --stack-name Webserver-Setup-Stack \
             --change-set-name WebServer-ChangeSet \
             --change-set-type CREATE \
-            --template-body webserver_Template/webserver_stack.yaml
+            --template-body webserver_Template/webserver_stack.yaml \
+            --region eu-west-1
 
       - name: Wait for Change Set to be created
-        run: aws cloudformation wait change-set-create-complete --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet
+        run: aws cloudformation wait change-set-create-complete --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet --region eu-west-1
 
       - name: Describe Change Set for Web Server stack
-        run: aws cloudformation describe-change-set --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet
+        run: aws cloudformation describe-change-set --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet --region eu-west-1
 
       - name: Execute Change Set for Web Server stack
-        run: aws cloudformation execute-change-set --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet
+        run: aws cloudformation execute-change-set --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet --region eu-west-1
 
   deploy-db:
     runs-on: ubuntu-latest
@@ -87,19 +118,37 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
+      - name: Check if stack exists
+        id: check-db-stack-exists
+        run: |
+          aws cloudformation describe-stacks --stack-name Database-Setup-Stack --query 'Stacks[0].StackStatus' --output text > stack_status.txt || echo "NO_STACK" > stack_status.txt
+          echo "::set-output name=stack_exists::$(cat stack_status.txt)"
+
       - name: Create Change Set for Database stack
+        if: steps.check-db-stack-exists.outputs.stack_exists == 'CREATE_COMPLETE'
+        run: |
+          aws cloudformation create-change-set \
+            --stack-name Database-Setup-Stack \
+            --change-set-name Database-ChangeSet \
+            --change-set-type UPDATE \
+            --template-body database_Template/db_stack.yaml \
+            --region eu-west-1
+
+      - name: Create Change Set for Database stack (if not exists)
+        if: steps.check-db-stack-exists.outputs.stack_exists != 'CREATE_COMPLETE'
         run: |
           aws cloudformation create-change-set \
             --stack-name Database-Setup-Stack \
             --change-set-name Database-ChangeSet \
             --change-set-type CREATE \
             --template-body database_Template/db_stack.yaml \
+            --region eu-west-1
 
       - name: Wait for Change Set to be created
-        run: aws cloudformation wait change-set-create-complete --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet
+        run: aws cloudformation wait change-set-create-complete --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet --region eu-west-1
 
       - name: Describe Change Set for Database stack
-        run: aws cloudformation describe-change-set --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet
+        run: aws cloudformation describe-change-set --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet --region eu-west-1
 
       - name: Execute Change Set for Database stack
-        run: aws cloudformation execute-change-set --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet
+        run: aws cloudformation execute-change-set --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet --region eu-west-1
