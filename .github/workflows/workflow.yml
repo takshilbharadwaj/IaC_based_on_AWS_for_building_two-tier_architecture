@@ -4,14 +4,15 @@ on:
   push:
     branches:
       - update_workflow_templates_path_issue
-  workflow_dispatch:
+    paths:
+      - network_Template/vpc_stack.yaml
+      - webserver_Template/webserver_stack.yaml
+      - database_Template/db_stack.yaml
 
 # Performing separate deployments for each CFN template to minimize chance of error.
 jobs:
   deploy-vpc:
     runs-on: ubuntu-latest
-    # Only run the job if the vpc_stack.yaml file is modified.
-    if: contains(github.event.push.changes[*].filename, 'network_Template/vpc_stack.yaml')
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -32,8 +33,6 @@ jobs:
 
   deploy-webserver:
     runs-on: ubuntu-latest
-    # Only run the job if the vpc_stack.yaml file is modified.
-    if: contains(github.event.push.changes[*].filename, 'webserver_Template/webserver_stack.yaml')
     needs: deploy-vpc
     steps:
       - name: Checkout code
@@ -55,7 +54,6 @@ jobs:
 
   deploy-db:
     runs-on: ubuntu-latest
-    if: contains(github.event.push.changes[*].filename, 'database_Template/db_stack.yaml')
     needs: deploy-webserver
     steps:
       - name: Checkout code
