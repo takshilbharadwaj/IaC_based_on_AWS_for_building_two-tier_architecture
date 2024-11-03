@@ -21,11 +21,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Deploy VPC stack
+      - name: Create Change Set for VPC stack
         run: |
-          aws cloudformation deploy \
+          aws cloudformation create-change-set \
             --stack-name VPC-Network-Stack \
-            --template-file network_Template/vpc_stack.yaml
+            --template-file network_Template/vpc_stack.yaml \
+            --change-set-name VPC-ChangeSet \
+            --change-set-type CREATE
+
+      - name: Wait for Change Set to be created
+        run: aws cloudformation wait change-set-create-complete --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet
+
+      - name: Describe Change Set for VPC stack
+        run: aws cloudformation describe-change-set --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet
+
+      - name: Execute Change Set for VPC stack
+        run: aws cloudformation execute-change-set --stack-name VPC-Network-Stack --change-set-name VPC-ChangeSet
 
   deploy-webserver:
     runs-on: ubuntu-latest
@@ -41,11 +52,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Deploy Web Server stack
+      - name: Create Change Set for Web Server stack
         run: |
-          aws cloudformation deploy \
+          aws cloudformation create-change-set \
             --stack-name Webserver-Setup-Stack \
-            --template-file webserver_Template/webserver_stack.yaml
+            --template-file webserver_Template/webserver_stack.yaml \
+            --change-set-name WebServer-ChangeSet \
+            --change-set-type CREATE
+
+      - name: Wait for Change Set to be created
+        run: aws cloudformation wait change-set-create-complete --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet
+
+      - name: Describe Change Set for Web Server stack
+        run: aws cloudformation describe-change-set --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet
+
+      - name: Execute Change Set for Web Server stack
+        run: aws cloudformation execute-change-set --stack-name Webserver-Setup-Stack --change-set-name WebServer-ChangeSet
 
   deploy-db:
     runs-on: ubuntu-latest
@@ -61,8 +83,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Deploy Database stack
+      - name: Create Change Set for Database stack
         run: |
-          aws cloudformation deploy \
+          aws cloudformation create-change-set \
             --stack-name Database-Setup-Stack \
-            --template-file database_Template/db_stack.yaml
+            --template-file database_Template/db_stack.yaml \
+            --change-set-name Database-ChangeSet \
+            --change-set-type CREATE
+
+      - name: Wait for Change Set to be created
+        run: aws cloudformation wait change-set-create-complete --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet
+
+      - name: Describe Change Set for Database stack
+        run: aws cloudformation describe-change-set --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet
+
+      - name: Execute Change Set for Database stack
+        run: aws cloudformation execute-change-set --stack-name Database-Setup-Stack --change-set-name Database-ChangeSet
